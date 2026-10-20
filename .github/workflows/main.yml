@@ -27,9 +27,17 @@ jobs:
           cd "$D"
           buildozer -v android debug 2>&1 | tee "$GITHUB_WORKSPACE/build.log"
 
-      - name: Afficher l'erreur (si echec)
+      - name: Afficher les vraies erreurs (si echec)
         if: failure()
-        run: tail -n 80 build.log
+        shell: bash
+        run: |
+          sed 's/\x1b\[[0-9;]*m//g' build.log > clean.log
+          echo "===== LIGNES D'ERREUR ====="
+          grep -n -i -E "error|failed|not found|traceback|exception" clean.log | grep -v -E "^[0-9]+:#" | tail -n 40 | cut -c1-300
+          echo "===== 40 LIGNES AVANT LE MESSAGE FINAL ====="
+          grep -n "Command failed" clean.log | head -1 | cut -c1-400
+          L=$(grep -n "Command failed" clean.log | head -1 | cut -d: -f1)
+          if [ -n "$L" ]; then sed -n "$((L-40)),$((L))p" clean.log | cut -c1-300; fi
 
       - name: Envoyer l'APK
         uses: actions/upload-artifact@v4
