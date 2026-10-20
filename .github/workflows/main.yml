@@ -21,6 +21,7 @@ jobs:
           pip install buildozer "cython==0.29.36" virtualenv setuptools
 
       - name: Compiler l'APK
+        shell: bash
         run: |
           if [ -f buildozer.spec ]; then D=.; else D="$(dirname "$(find . -name buildozer.spec | head -1)")"; fi
           cd "$D"
@@ -35,6 +36,7 @@ jobs:
         with:
           name: NeonVIEW-apk
           path: "**/bin/*.apk"
+          if-no-files-found: error
 
       - name: Envoyer le journal
         if: always()
